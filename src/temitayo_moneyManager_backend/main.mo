@@ -28,6 +28,8 @@ actor {
   // Variables
   var wallets = List.nil<Wallet>();
 
+   // Update queries
+
   //This functionis used to create the wallet. The wallet houses the money and the id of the wallet
   public func createWallet() : async Result.Result<Wallet, Text> {
     Id := Id + 1;
@@ -44,7 +46,7 @@ actor {
 
   };
 
-  // Update queries
+ 
   //ADDS money to the wallet of choice
   public func addMoney(walletId : Int, amount : Money) : async Result.Result<Text, Text> {
     let wallet = List.find<Wallet>(
