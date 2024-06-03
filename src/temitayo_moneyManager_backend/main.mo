@@ -28,6 +28,7 @@ actor {
   // Variables
   var wallets = List.nil<Wallet>();
 
+  //This functionis used to create the wallet. The wallet houses the money and the id of the wallet
   public func createWallet() : async Result.Result<Wallet, Text> {
     Id := Id + 1;
     if (Id == 8) {
@@ -44,6 +45,7 @@ actor {
   };
 
   // Update queries
+  //ADDS money to the wallet of choice
   public func addMoney(walletId : Int, amount : Money) : async Result.Result<Text, Text> {
     let wallet = List.find<Wallet>(
       wallets,
@@ -72,52 +74,79 @@ actor {
         );
         return #ok "Money added to wallet";
       };
-
     };
 
   };
 
   // Regular queries
+  // Get the balance of a specific wallet
+  public query func getBalance(walletId : Int) : async Result.Result<Nat, Text> {
+    let wallet = List.find<Wallet>(wallets, func(wallet) { wallet.id == walletId });
+    switch (wallet) {
+      case (null) { return #err "Wallet not found" };
 
-  // Get the balance in the user's wallet
-  public query func getBalance() : async Nat {
-    let balance = List.foldLeft<Money, Nat>(
-      wallet,
-      0,
-      func(acc, elem) {
-        acc + elem.amount;
-      },
-    );
-    return balance;
+      case (?wallet) {
+        let balance = List.foldLeft<Money, Nat>(
+          wallet.money,
+          0,
+          func(base, elem) {
+            (base + elem.amount);
+          },
+        );
+        return #ok balance;
+      };
+    };
+  };
+  
+  // Filter money in a specific wallet by currency
+  public query func filterByCurrency(walletId : Int, currency : Currency) : async Result.Result<List.List<Money>, Text> {
+    let wallet = List.find<Wallet>(wallets, func(wallet) { wallet.id == walletId });
+    switch (wallet) {
+      case (null) {
+        return #err("Wallet not found");
+      };
+      case (?wallet) {
+        let matches = List.filter<Money>(
+          wallet.money,
+          func(walletElem) {
+            walletElem.currency == currency;
+          },
+        );
+        return #ok(matches);
+      };
+    };
   };
 
-  // Get a list of money by property
-  public query func filterByCurrency(currency : Currency) : async List.List<Money> {
-    let matches = List.filter<Money>(
-      wallet,
-      func(walletElem) {
-        if (walletElem.currency == currency) { return true } else {
-          return false;
-        };
-      },
-    );
-    return matches;
+  // Filter money in a specific wallet by description
+  public query func filterByDescription(walletId : Int, description : Text) : async Result.Result<List.List<Money>, Text> {
+    let wallet = List.find<Wallet>(wallets, func(wallet) { wallet.id == walletId });
+    switch (wallet) {
+      case (null) {
+        return #err("Wallet not found");
+      };
+      case (?wallet) {
+        let matches = List.filter<Money>(
+          wallet.money,
+          func(walletElem) {
+            walletElem.description == description;
+          },
+        );
+        return #ok(matches);
+      };
+    };
   };
 
-  public query func filterByDescription(property : Text) : async List.List<Money> {
-    let matches = List.filter<Money>(
-      wallet,
-      func(walletElem) {
-        if (walletElem.description == property) { return true } else {
-          return false;
-        };
-      },
-    );
-    return matches;
-  };
-
-  public query func seeSize() : async Nat {
-    let size = List.size<Money>(wallet);
-    return size;
+  // Get the size of a specific wallet
+  public query func seeSize(walletId : Int) : async Result.Result<Nat, Text> {
+    let wallet = List.find<Wallet>(wallets, func(wallet) { wallet.id == walletId });
+    switch (wallet) {
+      case (null) {
+        return #err("Wallet not found");
+      };
+      case (?wallet) {
+        let size = List.size<Money>(wallet.money);
+        return #ok(size);
+      };
+    };
   };
 };
